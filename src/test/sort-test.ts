@@ -1,4 +1,3 @@
-import { SSL_OP_CRYPTOPRO_TLSEXT_BUG } from 'constants'
 import {connect} from '../mongodb/connect'
 
 const sortTest = async() => {
