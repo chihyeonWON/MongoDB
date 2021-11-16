@@ -482,3 +482,60 @@ const deleteTest = async() => {
 
 deleteTest()
 ```
+
+## 검색 결과 정렬하기
+
+find메서드로 검색한 결과는 다음처럼 sort 메서드를 연이어 호출해 검색 결과를 오름차순 혹은 내림차순으로 정렬할 수 있다.
+다음 코드는 name 속성값이 'Jack'인 문서에서 이름이 같으면 age의 내림차순으로 정렬하는 예이다.
+
+```typescript
+const cursor = personsCollection.find({name: 'Jack'}).sort({age: -1})
+```
+그런데 컬렉션에 문서 개수가 많아지면 검색 시간이 느려지는데, 이를 방지하기 위해 컬렉션에 인덱스(index)를 만들게 된다. 인덱스는 컬랙션 객체의 createIndex 메서드를 사용해 만들 수 있으며, 인덱스 항목은 다음처럼 속성 이름에 오름차순 정렬일 때는 1을, 내림차순 정렬 일 때는 -1 값을 설정합니다.
+
+```typescript
+let result = await 컬랙션_객체.createIndex({name: 1, age: -1})
+```
+다음 코드는 지금까지 내용을 테스트하는 예이다
+
+src/test/sort-test.ts
+```typescript
+  import {connect} from '../mongodb/connect'
+
+const sortTest = async() => {
+    let connection
+    try {
+        connection = await connect()
+        const db = await connection.db('mongodb')
+        const personsCollection = db.collection('persons')
+        await personsCollection.createIndex({name: 1, age: -1})
+        await personsCollection.deleteMany({})
+        await personsCollection.insertMany([
+            {name: 'Jack', age: 32}, {name: 'Jack', age: 33}, {name: 'Jane', age: 10}
+        ])
+
+        const cursor = personsCollection.find({name: 'Jack'}).sort({age: -1})
+        const result = await cursor.toArray()
+        console.log(result)
+    } catch(e) {
+        console.log(e.message)
+    } finally {
+        connection.close()
+    }
+}
+
+sortTest()
+```
+
+#### sort-test.ts 파일 실행 코드
+```typescript
+ts-node ./src/test/sort-test.ts
+```
+
+#### sort-test.ts 파일 실행 결과
+```typescript
+[
+  { _id: 61934b04c1b04122e4621982, name: 'Jack', age: 33 },
+  { _id: 61934b04c1b04122e4621981, name: 'Jack', age: 32 }
+]
+```
