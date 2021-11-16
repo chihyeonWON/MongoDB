@@ -1,6 +1,6 @@
 import {connect} from '../mongodb/connect'
 
-const connectTest = async() => {
+const makeCollectionsTest = async() => {
   let connection
   try {
     connection = await connect()
@@ -15,4 +15,4 @@ const connectTest = async() => {
   }  
 }
 
-connectTest()
+makeCollectionsTest()
