@@ -314,4 +314,28 @@ VSCode 터미널에서 다음 명령을 실행해 몽고 셸에 접속한다.
 mongo
 ```
 
+현재 mongodb 라는 이름의 데이터베이스를 만들었으므로 몽고 셸에서 다음 명령으로 mongodb 데이터베이스에 연결한다.
+```typescript
+use mongodb
+// switched to db mongodb
+```
+
+이처럼 switched to db mongodb 문구가 뜨면 정상 연결된것이고 컬렉션에 저장된 문서들은 다음 명령으로 검색해 볼 수 있다.
+```typescript
+db.persons.find({})
+// { "_id" : ObjectId("61933f9d69ddce0b1c954931"), "name" : "Jack", "age" : 32 }
+db.addresses.find({})
+// { "_id" : ObjectId("61933f9d69ddce0b1c954932"), "country" : "korea", "city" : "seoul" }
+```
+
+몽고 셸에서 빠져나오려면 Ctrl + D 키를 누른다.
+
+## \_id 속성과 ObjectId 타입
+
+모든 몽고DB 문서는 \_id라는 이름의 속성이 있는데 이 속성은 문서가 DB에 저장될 때 자동으로 만들어진다. 앞의 몽고 셸에서 \_id 값은 ObjectId('문자열') 형태로 출력되는데
+프로그램에서 ObjectId는 다음 코드로 얻을 수 있다.
+```typescript
+import {ObjectId} from 'mongodb'
+```
+
 
