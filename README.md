@@ -401,4 +401,49 @@ name이 Jack인 객체를 가진 persons 컬렉션과 find메서드에 빈 객�
 [ { _id: 61933f9d69ddce0b1c954932, country: 'korea', city: 'seoul' } ]
 ```
 
+#### 컬렉션 객체의 findOne 메서드
+
+findOne 메서드는 검색 조건에 맞는 문서를 한 개만 찾아준다. 
+문서가 한 개이므로 findOne은 cursor를 반환하지 않고 문서 객체 자체를 반환한다.
+```typescript
+const result = await 컬렉션객체.findOne(검색 조건 객체)
+```
+src/test/findOne-test.ts
+```typescript
+import {connect} from '../mongodb/connect'
+import {ObjectId} from 'mongodb'
+
+const findOneTest = async() => {
+    let connection, cursor
+    try {
+        connection = await connect()
+        const db = await connection.db('mongodb')
+        const personsCollection = db.collection('persons')
+
+        cursor = personsCollection.find({})
+        const foundPersons = await cursor.toArray()
+
+        const _id = foundPersons[0]._id
+        const result = await personsCollection.findOne({_id})
+        console.log(result)
+    } catch(e) {
+        console.log(e.message)
+    } finally {
+        connection.close()
+    }
+}
+
+findOneTest()
+```
+
+#### findOne-test.ts 파일 실행 코드
+```typescript
+ts-node ./src/test/findOne-test.ts
+```
+
+#### findOne-test.ts 파일 결과
+```typescript
+{ _id: 61933f9d69ddce0b1c954931, name: 'Jack', age: 32 }
+```
+
 
