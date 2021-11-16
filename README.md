@@ -338,4 +338,67 @@ db.addresses.find({})
 import {ObjectId} from 'mongodb'
 ```
 
+## 문서 찾기
+
+특정 컬렉션에 담긴 문서들은 다음과 같은 형식의 코드로 얻을 수 있다. 참고로 find 메서드는 자바스크립트 배열에서 찾은 객체를 주지않고, 일단 cursor라는 이름의 객체를 반환한다.
+그리고 cursor객체의 toArray 메서드로 자바스크립트 배열을 얻을 수 있다.
+```typescript
+let cursor = await.컬렉션객체.find(검색 조건 객체)
+const foundResult = await.cursor.toArray()
+```
+
+다음 코드는 personsCollection에 저장된 문서 중 name의 속성값이 'Jack'인 문서를 찾는 예이다.
+```typescript
+cursor = personsCollection.find({name: 'Jack'})
+```
+
+조건없이 모든 문서를 얻으려면 다음처럼 검색조건에 빈객체 {}를 사용한다
+```typescript
+cursor = addressesCollection.find({})
+```
+
+위의 cursor 객체와 find메서드 모든 문서르 얻는 빈 객체의 예제 파일인 find-test.ts를 생성
+
+src/test/find-test.ts
+```typescript
+import {connect} from '../mongodb/connect'
+
+const findDocumentTest = async() => {
+    let connection, cursor
+    try {
+        connection = await connect()
+        const db = await connection.db('mongodb')
+        const personsCollection = db.collection('persons')
+        const addressesCollection = db.collection('addresses')
+
+        cursor = personsCollection.find({name: 'Jack'})
+        const foundPersons = await cursor.toArray()
+        console.log(foundPersons)
+
+        cursor = addressesCollection.find({})
+        const foundAddresses = await cursor.toArray()
+        console.log(foundAddresses) 
+    } catch(e) {
+        console.log(e.message)
+    } finally {
+        connection.close()
+    }
+}
+
+findDocumentTest()
+```
+
+#### find-test.ts 파일 실행 코드
+```typescript
+ts-node ./src/test/find-test.ts
+```
+
+#### find-test.ts 파일 실행 결과
+
+name이 Jack인 객체를 가진 persons 컬렉션과 find메서드에 빈 객체를 넣은 addresses 컬렉션이 자바스크립트 배열로 출력된다.
+```typescript
+[ { _id: 61933f9d69ddce0b1c954931, name: 'Jack', age: 32 } ]
+[ { _id: 61933f9d69ddce0b1c954932, country: 'korea', city: 'seoul' } ]
+```
+
 
