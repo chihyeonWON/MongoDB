@@ -446,4 +446,39 @@ ts-node ./src/test/findOne-test.ts
 { _id: 61933f9d69ddce0b1c954931, name: 'Jack', age: 32 }
 ```
 
+## 문서 삭제하기
 
+컬렉션에 담긴 문서는 deleteOne 혹은 deleteMany 메서드를 사용하면 삭제할 수 있다. 이 두 메서드는 deleteCount라는 이름의 속성에 삭제된 문서의 개수가 담긴 객체를 반환한다.
+```typescript
+let result = await 컬렉션객체.deleteOne(검색 조건 객체)
+result = await 컬랙션객체.deleteMany(검색 조건 객체)
+```
+문서를 한 개 생성할 때는 insertOne메서드를 사용했지만 동시에 문서를 여러개 생성할때는 insertMany 메서드를 사용한다. 
+다음 코드는 insertMany로 문서를 여러 개 생성하고 deleteOne과 deleteMany 메서드를 사용해 문서를 다시 삭제하는 내용을 구현한 예이다
+
+```typescript
+import {connect} from '../mongodb/connect'
+
+const deleteTest = async() => {
+    let connection, cursor
+    try {
+        connection = await connect()
+        const db = await connection.db('mongodb')
+        const personsCollection = db.collection('persons')
+        await personsCollection.insertMany([
+            {name: 'Jack'}, {name: 'Tom'}, {name: 'Jane'}
+        ])
+
+        let result = await personsCollection.deleteOne({name: 'Tom'})
+        console.log(result) // deleteCount: 1
+        result = await personsCollection.deleteMany({})
+        console.log(result) // deleteCount: 2
+    } catch(e) {
+        console.log(e.message)
+    } finally {
+        connection.close()
+    }
+}
+
+deleteTest()
+```
