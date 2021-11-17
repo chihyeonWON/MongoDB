@@ -1,7 +1,7 @@
 import {connect} from '../mongodb/connect'
 
 const sortTest = async() => {
-    let connection, cursor
+    let connection
     try {
         connection = await connect()
         const db = await connection.db('mongodb')
