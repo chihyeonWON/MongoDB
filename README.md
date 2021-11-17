@@ -539,3 +539,83 @@ ts-node ./src/test/sort-test.ts
   { _id: 61934b04c1b04122e4621981, name: 'Jack', age: 32 }
 ]
 ```
+
+## CSV 파일 몽고DB에 저장하기
+가짜 데이터파일인 data/fake-100000.csv파일의 데이터를 readCsv.ts 파일의 코드를 다음과 가팅 수정하여 몽고DB에 담는 예
+```typescript
+for(let object of csvFileReaderGenerator(filename)) {
+  await collection.insertOne(object)
+}
+```
+다음은 CSV파일을 읽어서 users라는 컬렉션에 데이터를 담고, birthday와 name 속성에 인덱스를 생성하는 예
+
+src/insert-csv-to-mongo.ts
+```typescript
+import {connect} from './mongodb/connect'
+import {getFileNameAndNumber} from './utils'
+import {csvFileReaderGenerator} from './csv/csvFileReaderGenerator'
+
+const insertCsvToMongo = async(csvFilename, collectionName, index) => {
+  let connection
+  try {
+    connection = await connect()
+    const db = await connection.db("ch12-2")
+    const collection  = db.collection(collectionName)
+    await collection.deleteMany({})
+    await collection.createIndex(index)
+    let line = 1
+    for(let object of csvFileReaderGenerator(filename)) {
+      await collection.insertOne(object)
+      console.log(`${line++} inserted.`)
+    }
+    console.log('\n insertion complete.')
+  } catch(e) {
+    console.log(e.message)
+  } finally {
+    connection.close()
+  }  
+}
+
+const [filename] = getFileNameAndNumber('./data/fake-100000.csv', 1)
+insertCsvToMongo(filename, "users", {birthday: -1, name: 1})
+```
+
+## limit와 skip 메서드
+
+10만건이 넘는 데이터를 find({}) 형태로 찾는 것은 문제가 있다. find메서드는 이런 상황에 대응하도록 검색된 데이터의 개수를 제한하는 limit 메서드와 
+페이징 등의 기능을 할 수 있도록 검색된 결과의 앞 N번째를 거를 수 있게 해주는 skip 메서드를 제공한다.
+
+다음 코드는 검색된 결과 중에서 100번째부터 다섯 개의 건수만 선택하는 예이다.
+```typescript
+let cursor = await usersCollection.find({}).sort({birthday: -1, name: 1}).skip(100).limit(5)
+```
+
+다음 코드는 앞에서 만든 users 컬렉션의 데이터 중에서 다섯 건을 얻어와 name와 birthday 속성값만 출력하는 예이다.
+
+src/find-limit-skip.ts
+```typescript
+import { connect } from './mongodb/connect'
+import { IFake } from './fake'
+
+const findLimitSkip = async () => {
+  let connection, cursor
+  try {
+    connection = await connect()
+    const db = await connection.db('ch12-2')
+    const usersCollection = db.collection('users')
+
+    let cursor = await usersCollection.find({}).sort({ birthday: -1, name: 1 }).skip(100).limit(5)
+    let result = await cursor.toArray()
+    console.log(result.map((user: IFake) => ({ name: user.name, birthday: user.birthday })))
+  } catch (e) {
+    console.log(e.message)
+  } finally {
+    connection.close()
+  }
+}
+
+findLimitSkip()
+```
+
+데이터가 DB에 담겼으니 이를 REST 방식의 API 서버로 구현하는 프로젝트는 ExpressAPI 에서 실습한다.
+
